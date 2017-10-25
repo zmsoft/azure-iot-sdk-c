@@ -373,9 +373,9 @@ static void SendEvent(IOTHUB_PROVISIONED_DEVICE* deviceToUse)
         ASSERT_IS_NOT_NULL_WITH_MSG(msgHandle, "Failure to create message handle");
 
         if (deviceToUse->howToCreate == IOTHUB_ACCOUNT_AUTH_X509) {
-            result = IoTHubClient_SetOption(iotHubClientHandle, OPTION_X509_CERT, deviceToUse->certificate);
+            result = IoTHubClient_SetOption(iotHubClientHandle, "x509EccCertificate", deviceToUse->certificate);
             ASSERT_ARE_EQUAL_WITH_MSG(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_OK, result, "Could not set the device x509 certificate");
-            result = IoTHubClient_SetOption(iotHubClientHandle, OPTION_X509_PRIVATE_KEY, deviceToUse->primaryAuthentication);
+            result = IoTHubClient_SetOption(iotHubClientHandle, "x509EccAliasKey", deviceToUse->primaryAuthentication);
             ASSERT_ARE_EQUAL_WITH_MSG(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_OK, result, "Could not set the device x509 privateKey");
         }
 
@@ -493,9 +493,9 @@ static void RecvMessage(IOTHUB_PROVISIONED_DEVICE* deviceToUse)
 
     if (deviceToUse->howToCreate == IOTHUB_ACCOUNT_AUTH_X509) {
         IOTHUB_CLIENT_RESULT result;
-        result = IoTHubClient_SetOption(iotHubClientHandle, OPTION_X509_CERT, deviceToUse->certificate);
+        result = IoTHubClient_SetOption(iotHubClientHandle, "x509EccCertificate", deviceToUse->certificate);
         ASSERT_ARE_EQUAL_WITH_MSG(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_OK, result, "Could not set the device x509 certificate");
-        result = IoTHubClient_SetOption(iotHubClientHandle, OPTION_X509_PRIVATE_KEY, deviceToUse->primaryAuthentication);
+        result = IoTHubClient_SetOption(iotHubClientHandle, "x509EccAliasKey", deviceToUse->primaryAuthentication);
         ASSERT_ARE_EQUAL_WITH_MSG(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_OK, result, "Could not set the device x509 privateKey");
     }
 
