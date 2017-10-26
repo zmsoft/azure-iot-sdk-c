@@ -59,6 +59,7 @@ typedef struct IOTHUB_DEVICE_TWIN_TAG
     tickcounter_ms_t ms_timesOutAfter; /* a value of "0" means "no timeout", if the IOTHUBCLIENT_LL's handle tickcounter > msTimesOutAfer then the message shall timeout*/
     IOTHUB_CLIENT_REPORTED_STATE_CALLBACK reported_state_callback;
     CONSTBUFFER_HANDLE report_data_handle;
+    const char* version;
     void* context;
     DLIST_ENTRY entry;
 	IOTHUB_CLIENT_LL_HANDLE client_handle;
