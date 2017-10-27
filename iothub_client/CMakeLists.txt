@@ -16,7 +16,8 @@ set(iothub_client_ll_transport_c_files
     ./src/iothub_message.c
     ./src/iothub_client_ll.c
     ./src/blob.c
-)
+    ./src/iothub_client_diagnostic.c
+ )
 
 if(NOT ${dont_use_uploadtoblob})
     set(iothub_client_ll_transport_c_files 
@@ -41,12 +42,13 @@ set(iothub_client_ll_transport_h_files
     ./inc/iothub_client_version.h
     ./inc/iothub_transport_ll.h
     ./inc/blob.h
+    ./inc/iothub_client_diagnostic.h
 )
 
-if (${use_dps_client})
+if (${use_prov_client})
     set(iothub_client_ll_transport_h_files
         ${iothub_client_ll_transport_h_files}
-        ./inc/iothub_client_dps_ll.h
+        ./inc/iothub_client_hsm_ll.h
     )
     set(iothub_client_ll_transport_c_files 
         ${iothub_client_ll_transport_c_files}
@@ -118,17 +120,11 @@ if(${use_amqp})
         ./src/iothubtransport_amqp_telemetry_messenger.c 
         ./src/iothubtransport_amqp_twin_messenger.c 
         ./src/iothubtransport_amqp_messenger.c 
+        ./src/iothubtransportamqp_methods.c
         ./src/iothub_client_retry_control.c
         ./src/message_queue.c
         ./src/uamqp_messaging.c
     )
-
-    if(${wip_use_c2d_amqp_methods})
-        set(iothub_client_amqp_transport_common_c_files
-            ${iothub_client_amqp_transport_common_c_files}
-            ./src/iothubtransportamqp_methods.c
-        )
-    endif()
 
     set(iothub_client_amqp_transport_common_h_files
         ${iothub_client_ll_transport_h_files}
@@ -139,17 +135,11 @@ if(${use_amqp})
         ./inc/iothubtransport_amqp_telemetry_messenger.h
         ./inc/iothubtransport_amqp_twin_messenger.h
         ./inc/iothubtransport_amqp_messenger.h
+        ./inc/iothubtransportamqp_methods.h
         ./inc/iothub_client_retry_control.h
         ./inc/message_queue.h
         ./inc/uamqp_messaging.h
     )
-
-    if(${wip_use_c2d_amqp_methods})
-        set(iothub_client_amqp_transport_common_h_files
-            ${iothub_client_amqp_transport_common_h_files}
-            ./inc/iothubtransportamqp_methods.h
-        )
-    endif()
 
     set(iothub_client_amqp_transport_c_files
         ${iothub_client_amqp_transport_common_c_files}
@@ -251,16 +241,18 @@ ENDIF()
 
 include_directories(${IOTHUB_CLIENT_INC_FOLDER})
 
-IF(WIN32)
+if(${memory_trace})
+    add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
+endif()
+
+IF(WIN32)  
     #windows needs this define
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
-  
-  if (WINCE) # Be lax with WEC 2013 compiler
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
-    SET_SOURCE_FILES_PROPERTIES(src/iothub_client.c src/iothubtransport.c src/iothub_client_ll.c src/iothubtransporthttp.c src/blob.c PROPERTIES LANGUAGE CXX)
-  ENDIF(WINCE)
+    if (WINCE) # Be lax with WEC 2013 compiler
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
+        SET_SOURCE_FILES_PROPERTIES(src/iothub_client.c src/iothubtransport.c src/iothub_client_ll.c src/iothubtransporthttp.c src/blob.c PROPERTIES LANGUAGE CXX)
+    ENDIF(WINCE)
 ENDIF(WIN32)
 
 if(${use_http})
@@ -328,10 +320,11 @@ if(${use_mqtt})
     )
 endif()
 
-if (${use_dps_client})
+if (${use_prov_client})
     set(iothub_client_libs
         ${iothub_client_libs}
-        iothub_security_client
+        hsm_security_client
+        prov_auth_client
     )
 endif()
 
