@@ -38,10 +38,13 @@ IF(WIN32)
     add_definitions(/WX)
 ELSE()
     # Make warning as error
-	if(NOT IOS)		### TODO Fix this so that no warnings are generated
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-	endif (NOT IOS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+    if (IOS)
+        # Clang for iOS is more picky and will warn on these and fail the build
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-function")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-function")
+    endif (IOS)
 ENDIF(WIN32)
 
 set(hsm_type_x509 OFF CACHE BOOL "x509 type of hsm used with the Provisioning client")

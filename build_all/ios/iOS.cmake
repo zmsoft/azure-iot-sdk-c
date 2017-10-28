@@ -113,15 +113,13 @@ if (${simulator_build})
 	# set (SIMULATOR True)
 	set (IOS_PLATFORM_LOCATION "iPhoneSimulator.platform")
 	set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphonesimulator")
-    # set (IOS_ARCH i386 x86_64)
+    set (IOS_ARCH i386 x86_64)
 else (${simulator_build})
 	set (IOS_PLATFORM_LOCATION "iPhoneOS.platform")
 	set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos")
-    # set (IOS_ARCH armv7s arm64)
+    set (IOS_ARCH armv7s arm64)
 endif (${simulator_build})
 
-set (IOS_ARCH i386 x86_64 armv7 armv7s arm64)
-	
 # Setup iOS developer location unless specified manually with CMAKE_IOS_DEVELOPER_ROOT
 # Note Xcode 4.3 changed the installation location, choose the most recent one available
 exec_program(/usr/bin/xcode-select ARGS -print-path OUTPUT_VARIABLE CMAKE_XCODE_DEVELOPER_DIR)
