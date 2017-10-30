@@ -31,6 +31,7 @@
 
 #define LOG_ERROR_RESULT LogError("result = %s", ENUM_TO_STRING(IOTHUB_CLIENT_RESULT, result));
 #define INDEFINITE_TIME ((time_t)(-1))
+#define TWIN_REP_PROPS_VERSION_UNDEFINED NULL
 
 DEFINE_ENUM_STRINGS(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_RESULT_VALUES);
 DEFINE_ENUM_STRINGS(IOTHUB_CLIENT_CONFIRMATION_RESULT, IOTHUB_CLIENT_CONFIRMATION_RESULT_VALUES);
@@ -123,6 +124,12 @@ static void setTransportProtocol(IOTHUB_CLIENT_LL_HANDLE_DATA* handleData, TRANS
 static void device_twin_data_destroy(IOTHUB_DEVICE_TWIN* client_item)
 {
     CONSTBUFFER_Destroy(client_item->report_data_handle);
+    
+    if (client_item->version != NULL)
+    {
+        free(client_item->version);
+    }
+
     free(client_item);
 }
 
@@ -474,23 +481,30 @@ static uint32_t get_next_item_id(IOTHUB_CLIENT_LL_HANDLE_DATA* handleData)
     return handleData->data_msg_id;
 }
 
-static IOTHUB_DEVICE_TWIN* dev_twin_data_create(IOTHUB_CLIENT_LL_HANDLE_DATA* handleData, uint32_t id, const unsigned char* reportedState, size_t size, IOTHUB_CLIENT_REPORTED_STATE_CALLBACK reportedStateCallback, void* userContextCallback)
+static IOTHUB_DEVICE_TWIN* dev_twin_data_create(IOTHUB_CLIENT_LL_HANDLE_DATA* handleData, uint32_t id, const unsigned char* reportedState, size_t size, const char* version, IOTHUB_CLIENT_REPORTED_STATE_CALLBACK reportedStateCallback, void* userContextCallback)
 {
     IOTHUB_DEVICE_TWIN* result = (IOTHUB_DEVICE_TWIN*)malloc(sizeof(IOTHUB_DEVICE_TWIN) );
     if (result != NULL)
     {
+        memset(result, 0, sizeof(IOTHUB_DEVICE_TWIN));
+
         result->report_data_handle = CONSTBUFFER_Create(reportedState, size);
         if (result->report_data_handle == NULL)
         {
             LogError("Failure allocating reported state data");
-            free(result);
+            device_twin_data_destroy(result);
             result = NULL;
         }
         else if (tickcounter_get_current_ms(handleData->tickCounter, &result->ms_timesOutAfter) != 0)
         {
             LogError("Failure getting tickcount info");
-            CONSTBUFFER_Destroy(result->report_data_handle);
-            free(result);
+            device_twin_data_destroy(result);
+            result = NULL;
+        }
+        else if (version != NULL && mallocAndStrcpy_s(&result->version, version) != 0)
+        {
+            LogError("Failure saving the Twin reported properties version");
+            device_twin_data_destroy(result);
             result = NULL;
         }
         else
@@ -1836,7 +1850,7 @@ IOTHUB_CLIENT_RESULT IoTHubClient_LL_SetDeviceTwinCallback(IOTHUB_CLIENT_LL_HAND
     return result;
 }
 
-IOTHUB_CLIENT_RESULT IoTHubClient_LL_SendReportedState(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, const unsigned char* reportedState, size_t size, IOTHUB_CLIENT_REPORTED_STATE_CALLBACK reportedStateCallback, void* userContextCallback)
+IOTHUB_CLIENT_RESULT IoTHubClient_LL_SendReportedStateWithVersion(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, const unsigned char* reportedState, size_t size, const char* version, IOTHUB_CLIENT_REPORTED_STATE_CALLBACK reportedStateCallback, void* userContextCallback)
 {
     IOTHUB_CLIENT_RESULT result;
     /* Codes_SRS_IOTHUBCLIENT_LL_10_012: [ IoTHubClient_LL_SendReportedState shall fail and return IOTHUB_CLIENT_INVALID_ARG if parameter iotHubClientHandle is NULL. ] */
@@ -1851,7 +1865,7 @@ IOTHUB_CLIENT_RESULT IoTHubClient_LL_SendReportedState(IOTHUB_CLIENT_LL_HANDLE i
     {
         IOTHUB_CLIENT_LL_HANDLE_DATA* handleData = (IOTHUB_CLIENT_LL_HANDLE_DATA*)iotHubClientHandle;
         /* Codes_SRS_IOTHUBCLIENT_LL_10_014: [IoTHubClient_LL_SendReportedState shall construct and queue the reported a Device_Twin structure for transmition by the underlying transport.] */
-        IOTHUB_DEVICE_TWIN* client_data = dev_twin_data_create(handleData, get_next_item_id(handleData), reportedState, size, reportedStateCallback, userContextCallback);
+        IOTHUB_DEVICE_TWIN* client_data = dev_twin_data_create(handleData, get_next_item_id(handleData), reportedState, size, version, reportedStateCallback, userContextCallback);
         if (client_data == NULL)
         {
             /* Codes_SRS_IOTHUBCLIENT_LL_10_015: [If any error is encountered IoTHubClient_LL_SendReportedState shall return IOTHUB_CLIENT_ERROR.] */
@@ -1877,6 +1891,11 @@ IOTHUB_CLIENT_RESULT IoTHubClient_LL_SendReportedState(IOTHUB_CLIENT_LL_HANDLE i
         }
     }
     return result;
+}
+
+IOTHUB_CLIENT_RESULT IoTHubClient_LL_SendReportedState(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, const unsigned char* reportedState, size_t size, IOTHUB_CLIENT_REPORTED_STATE_CALLBACK reportedStateCallback, void* userContextCallback)
+{
+    return IoTHubClient_LL_SendReportedState(iotHubClientHandle, reportedState, size, TWIN_REP_PROPS_VERSION_UNDEFINED, reportedStateCallback, userContextCallback);
 }
 
 IOTHUB_CLIENT_RESULT IoTHubClient_LL_SetDeviceMethodCallback(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC deviceMethodCallback, void* userContextCallback)
