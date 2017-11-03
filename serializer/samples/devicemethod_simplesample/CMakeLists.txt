@@ -40,8 +40,17 @@ include_directories(. ${SHARED_UTIL_INC_FOLDER} ${IOTHUB_CLIENT_INC_FOLDER})
 
 add_executable(devicemethod_simplesample ${devicemethod_simplesample_c_files} ${devicemethod_simplesample_h_files} ${samples_cert_file})
 
-target_link_libraries(devicemethod_simplesample 
-	iothub_client_mqtt_transport
-	serializer 
-	iothub_client
-	)
+if (build_as_dynamic)
+    target_link_libraries(devicemethod_simplesample 
+        iothub_client_mqtt_transport_dll
+        serializer_dll
+    )
+else()
+    target_link_libraries(devicemethod_simplesample 
+        iothub_client_mqtt_transport
+        serializer 
+        iothub_client
+        parson_lib
+        umqtt
+    )
+endif(build_as_dynamic)

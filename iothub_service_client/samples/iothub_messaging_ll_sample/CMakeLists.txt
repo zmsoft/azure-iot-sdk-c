@@ -10,7 +10,7 @@ compileAsC99()
 # endif()
 
 set(iothub_messaging_ll_sample_c_files
-iothub_messaging_ll_sample.c
+    iothub_messaging_ll_sample.c
 )
 
 if(WIN32)
@@ -36,6 +36,7 @@ add_executable(iothub_messaging_ll_sample ${iothub_messaging_ll_sample_c_files} 
 
 target_link_libraries(iothub_messaging_ll_sample 
 	iothub_service_client
+    parson_lib
 )
 
 linkSharedUtil(iothub_messaging_ll_sample)

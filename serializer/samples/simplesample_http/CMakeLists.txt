@@ -45,6 +45,7 @@ target_link_libraries(simplesample_http
 	serializer 
 	iothub_client 
 	iothub_client_http_transport 
+    parson_lib
 )
 
 linkSharedUtil(simplesample_http)

@@ -26,8 +26,6 @@ include_directories(. ${SERIALIZER_INC_FOLDER} ${SHARED_UTIL_INC_FOLDER} ${IOTHU
 
 add_executable(devicetwin_simplesample ${devicetwin_simplesample_c_files} ${devicetwin_simplesample_h_files})
 
-target_link_libraries(devicetwin_simplesample serializer iothub_client)
-
 if(${use_amqp})
     target_link_libraries(devicetwin_simplesample iothub_client_amqp_transport)
     linkUAMQP(devicetwin_simplesample)
@@ -36,6 +34,13 @@ endif()
 if(${use_mqtt})
     target_link_libraries(devicetwin_simplesample iothub_client_mqtt_transport)
 endif()
+
+target_link_libraries(devicetwin_simplesample 
+    serializer 
+    iothub_client
+    parson_lib
+    umqtt
+)
 
 linkSharedUtil(devicetwin_simplesample)
 

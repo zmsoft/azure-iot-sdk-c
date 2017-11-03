@@ -4,7 +4,10 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(azure_iot_sdks)
 
-set(IOT_SDK_VERSION 1.1.25)
+include("configs/azure_iot_sdksFunctions.cmake")
+
+getIoTSDKVersion()
+message(STATUS "IoT Client SDK Version = ${IOT_SDK_VERSION}")
 
 if(POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW)
@@ -136,8 +139,6 @@ endif()
 if(NOT "${compileOption_CXX}" STREQUAL "OFF")
     set(CMAKE_CXX_FLAGS "${compileOption_CXX} ${CMAKE_CXX_FLAGS}")
 endif()
-
-include("configs/azure_iot_sdksFunctions.cmake")
 
 include("dependencies.cmake")
 

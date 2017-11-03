@@ -6,7 +6,7 @@
 compileAsC99()
 
 set(iothub_client_sample_x509_c_files
-iothub_client_sample_x509.c
+    iothub_client_sample_x509.c
 )
 
 IF(WIN32)
@@ -25,11 +25,6 @@ endif()
 include_directories(.)
 
 add_executable(iothub_client_sample_x509 ${iothub_client_sample_x509_c_files} ${samples_cert_file})
-
-target_link_libraries(iothub_client_sample_x509 
-#iothubclient is here only because locking... in gballoc no less.
-    iothub_client
-)
 
 if(${use_http})
     target_link_libraries(iothub_client_sample_x509 
@@ -56,3 +51,9 @@ if(${use_mqtt})
     linkMqttLibrary(iothub_client_sample_x509)
     add_definitions(-DUSE_MQTT)
 endif()
+
+target_link_libraries(iothub_client_sample_x509 
+#iothubclient is here only because locking... in gballoc no less.
+    iothub_client
+    parson_lib
+)

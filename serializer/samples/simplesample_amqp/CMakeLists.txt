@@ -40,7 +40,11 @@ link_directories(${whatIsBuilding}_dll ${SHARED_UTIL_LIB_DIR})
 
 add_executable(simplesample_amqp ${simplesample_amqp_c_files} ${simplesample_amqp_h_files} ${samples_cert_file})
 
-target_link_libraries(simplesample_amqp serializer iothub_client iothub_client_amqp_transport)
+target_link_libraries(simplesample_amqp serializer 
+    iothub_client 
+    iothub_client_amqp_transport
+    parson_lib
+)
 
 linkSharedUtil(simplesample_amqp)
 linkUAMQP(simplesample_amqp)

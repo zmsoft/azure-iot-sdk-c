@@ -28,11 +28,18 @@ include_directories(.)
 
 add_executable(iothub_client_sample_mqtt_websockets ${iothub_client_sample_mqtt_c_files} ${iothub_client_sample_mqtt_h_files})
 
-target_link_libraries(iothub_client_sample_mqtt_websockets  
-    iothub_client_mqtt_ws_transport
-    iothub_client 
-)
-
-linkSharedUtil(iothub_client_sample_mqtt_websockets)
-linkMqttLibrary(iothub_client_sample_mqtt_websockets)
+if (build_as_dynamic)
+    
+    target_link_libraries(iothub_client_sample_mqtt_websockets  
+        iothub_client_mqtt_ws_transport_dll
+    )
+else()
+    target_link_libraries(iothub_client_sample_mqtt_websockets  
+        iothub_client_mqtt_ws_transport
+        iothub_client 
+        aziotsharedutil
+        parson_lib
+        umqtt
+    )
+endif()
 

@@ -43,5 +43,6 @@ endif()
 
 target_link_libraries(iothub_client_sample_device_twin  
     aziotsharedutil
-    iothub_client 
+    iothub_client
+    parson_lib
 )

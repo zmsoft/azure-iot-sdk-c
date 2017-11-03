@@ -28,7 +28,9 @@ add_executable(temp_sensor_anomaly ${temp_sensor_anomaly_c_files} ${temp_sensor_
 target_link_libraries(temp_sensor_anomaly 
 	serializer 
 	iothub_client 
-	iothub_client_http_transport)
+	iothub_client_http_transport
+    parson_lib
+)
 	
 linkSharedUtil(temp_sensor_anomaly)
 linkHttp(temp_sensor_anomaly)

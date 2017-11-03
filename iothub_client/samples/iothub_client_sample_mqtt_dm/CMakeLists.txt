@@ -39,15 +39,26 @@ if(LINUX)
 
     add_executable(iothub_client_sample_mqtt_dm ${iothub_client_sample_mqtt_dm_c_files} ${iothub_client_sample_mqtt_dm_h_files})
 
-    target_link_libraries(iothub_client_sample_mqtt_dm
-        iothub_client
-        iothub_client_mqtt_transport
-        serializer
-        aziotsharedutil
-        umqtt
-        pthread
-        curl
-        m
-    )
+    if (build_as_dynamic)
+        target_link_libraries(iothub_client_sample_mqtt_dm
+            iothub_client_mqtt_transport_dll
+            serializer
+            pthread
+            curl
+            m
+        )
+    else()
+        target_link_libraries(iothub_client_sample_mqtt_dm
+            iothub_client
+            iothub_client_mqtt_transport
+            serializer
+            parson_lib
+            aziotsharedutil
+            umqtt
+            pthread
+            curl
+            m
+        )
+    endif(build_as_dynamic)
 
 endif()  

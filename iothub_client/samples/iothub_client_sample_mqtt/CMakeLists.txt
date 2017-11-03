@@ -34,8 +34,17 @@ include_directories(.)
 
 add_executable(iothub_client_sample_mqtt ${iothub_client_sample_mqtt_c_files} ${iothub_client_sample_mqtt_h_files} ${samples_cert_file})
 
-target_link_libraries(iothub_client_sample_mqtt  
-    iothub_client_mqtt_transport
-    iothub_client 
-)
-
+if (build_as_dynamic)
+    
+    target_link_libraries(iothub_client_sample_mqtt  
+        iothub_client_mqtt_transport_dll
+    )
+else()
+    target_link_libraries(iothub_client_sample_mqtt  
+        iothub_client_mqtt_transport
+        iothub_client 
+        aziotsharedutil
+        parson_lib
+        umqtt
+    )
+endif(build_as_dynamic)

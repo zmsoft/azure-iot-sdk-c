@@ -6,7 +6,7 @@
 compileAsC99()
 
 set(iothub_devicemethod_sample_c_files
-iothub_devicemethod_sample.c
+    iothub_devicemethod_sample.c
 )
 
 if(WIN32)
@@ -32,8 +32,15 @@ include_directories(.)
 
 add_executable(iothub_devicemethod_sample ${iothub_devicemethod_sample_c_files} ${iothub_devicemethod_sample_h_files})
 
-target_link_libraries(iothub_devicemethod_sample 
-	iothub_service_client
-)
+if(build_as_dynamic)
+    target_link_libraries(iothub_devicemethod_sample 
+        iothub_service_client_dll
+    )
+else()
+    target_link_libraries(iothub_devicemethod_sample 
+        iothub_service_client
+        parson_lib
+    )
+endif(build_as_dynamic)
 
 linkSharedUtil(iothub_devicemethod_sample)

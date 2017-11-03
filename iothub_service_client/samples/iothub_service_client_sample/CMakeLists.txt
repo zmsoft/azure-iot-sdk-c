@@ -36,6 +36,7 @@ add_executable(iothub_service_client_sample ${iothub_service_client_sample_c_fil
 
 target_link_libraries(iothub_service_client_sample 
 	iothub_service_client
+    parson_lib
 )
 
 linkSharedUtil(iothub_service_client_sample)

@@ -8,7 +8,7 @@ compileAsC99()
 # endif()
 
 set(iothub_registrymanager_sample_c_files
-iothub_registrymanager_sample.c
+    iothub_registrymanager_sample.c
 )
 
 if(WIN32)
@@ -19,7 +19,7 @@ endif()
 
 
 set(iothub_registrymanager_sample_h_files
-iothub_registrymanager_sample.h
+    iothub_registrymanager_sample.h
 )
 
 IF(WIN32)
@@ -34,6 +34,7 @@ add_executable(iothub_registrymanager_sample ${iothub_registrymanager_sample_c_f
 
 target_link_libraries(iothub_registrymanager_sample 
 	iothub_service_client
+    parson_lib
 )
 
 linkSharedUtil(iothub_registrymanager_sample)

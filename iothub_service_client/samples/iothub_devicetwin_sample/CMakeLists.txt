@@ -8,7 +8,7 @@ compileAsC99()
 # endif()
 
 set(iothub_devicetwin_sample_c_files
-iothub_devicetwin_sample.c
+    iothub_devicetwin_sample.c
 )
 
 if(WIN32)
@@ -19,7 +19,7 @@ endif()
 
 
 set(iothub_devicetwin_sample_h_files
-iothub_devicetwin_sample.h
+    iothub_devicetwin_sample.h
 )
 
 IF(WIN32)
@@ -33,10 +33,12 @@ include_directories(.)
 add_executable(iothub_devicetwin_sample ${iothub_devicetwin_sample_c_files} ${iothub_devicetwin_sample_h_files})
 
 if(WIN32)
-    target_link_libraries(iothub_devicetwin_sample iothub_service_client rpcrt4.lib)
-else()
-    target_link_libraries(iothub_devicetwin_sample iothub_service_client)
+    target_link_libraries(iothub_devicetwin_sample rpcrt4.lib)
 endif()
 
+target_link_libraries(iothub_devicetwin_sample
+    iothub_service_client
+    parson_lib
+)
 
 linkSharedUtil(iothub_devicetwin_sample)
