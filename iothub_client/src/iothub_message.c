@@ -719,7 +719,14 @@ void IoTHubMessage_Destroy(IOTHUB_MESSAGE_HANDLE iotHubMessageHandle)
     /*Codes_SRS_IOTHUBMESSAGE_01_004: [If iotHubMessageHandle is NULL, IoTHubMessage_Destroy shall do nothing.] */
     if (iotHubMessageHandle != NULL)
     {
+        IOTHUB_MESSAGE_HANDLE_DATA* iotHubMessage = (IOTHUB_MESSAGE_HANDLE_DATA*)iotHubMessageHandle;
+
+        if (iotHubMessage->contentType == IOTHUBMESSAGE_UNKNOWN)
+        {
+            LogError("Destroying message with content type IOTHUBMESSAGE_UNKNOWN");
+        }
+
         /*Codes_SRS_IOTHUBMESSAGE_01_003: [IoTHubMessage_Destroy shall free all resources associated with iotHubMessageHandle.]  */
-        DestroyMessageData((IOTHUB_MESSAGE_HANDLE_DATA* )iotHubMessageHandle);
+        DestroyMessageData(iotHubMessage);
     }
 }
