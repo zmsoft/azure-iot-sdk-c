@@ -92,6 +92,10 @@ if (${build_as_dynamic})
         VERSION ${IOT_SDK_VERSION}
         SOVERSION ${IOT_SDK_VERION_MAJOR}
     )
+    target_link_libraries(serializer_dll 
+        aziotsharedutil
+		parson_lib
+    )
     set(install_libs ${install_libs} serializer_dll)
 endif()
 

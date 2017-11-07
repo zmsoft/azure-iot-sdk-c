@@ -384,8 +384,6 @@ if(${use_mqtt})
     )
     
     add_library(iothub_client_mqtt_transport $<TARGET_OBJECTS:iothub_client_mqtt_transport_obj>)
-    #linkSharedUtil(iothub_client_mqtt_transport)
-    #linkMqttLibrary(iothub_client_mqtt_transport)
 
     set(iothub_client_libs
         ${iothub_client_libs}
@@ -421,6 +419,9 @@ if(${use_mqtt})
         endif()
         set_target_properties(iothub_client_mqtt_transport_dll PROPERTIES 
             OUTPUT_NAME "iothub_client_mqtt_transport"
+            ARCHIVE_OUTPUT_NAME "iothub_client_mqtt_transport_dll_import"		# Rename import library so it doesn't clash with the static version
+            ENABLE_EXPORTS YES
+            WINDOWS_EXPORT_ALL_SYMBOLS YES										# Alternative to using a .def file - negates the need to create and maintain them
             VERSION ${IOT_SDK_VERSION}
             SOVERSION ${IOT_SDK_VERION_MAJOR}
         )
@@ -443,6 +444,9 @@ if(${use_mqtt})
         endif()
         set_target_properties(iothub_client_mqtt_ws_transport_dll PROPERTIES 
             OUTPUT_NAME "iothub_client_mqtt_ws_transport"
+            ARCHIVE_OUTPUT_NAME "iothub_client_mqtt_ws_transport_dll_import"	# Rename import library so it doesn't clash with the static version
+            ENABLE_EXPORTS YES
+            WINDOWS_EXPORT_ALL_SYMBOLS YES										# Alternative to using a .def file - negates the need to create and maintain them
             VERSION ${IOT_SDK_VERSION}
             SOVERSION ${IOT_SDK_VERION_MAJOR}
         )
@@ -494,19 +498,15 @@ set(iothub_client_libs
 )
 # Don't build samples under Win32 ARM for now
 if(NOT ${skip_samples})
-if(WIN32)
-# Build samples for WEC 2013 for both ARM and x86 processsor types
-  if(WINCE) 
-    add_subdirectory(samples)
-  else()
-    if (NOT ${ARCHITECTURE} STREQUAL "ARM")
-    add_subdirectory(samples)
+    if(WIN32)
+    # Build samples for WEC 2013 for both ARM and x86 processsor types
+        if(WINCE OR NOT ${ARCHITECTURE} STREQUAL "ARM") 
+            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+            add_subdirectory(samples)
+        endif()
+    else()
+        add_subdirectory(samples)
     endif()
-  endif()
-    
-else()
-    add_subdirectory(samples)
-endif()
 endif()
 
 if(NOT IN_OPENWRT)

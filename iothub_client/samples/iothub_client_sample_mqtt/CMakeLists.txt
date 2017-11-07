@@ -9,6 +9,8 @@ endif()
 
 compileAsC99()
 
+set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 set(iothub_client_sample_mqtt_c_files
     iothub_client_sample_mqtt.c
 )
