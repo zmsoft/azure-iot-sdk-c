@@ -86,6 +86,7 @@ PROV_DEVICE_HANDLE Prov_Device_Create(const char* uri, const char* scope_id, PRO
 {
     PROV_DEVICE_INSTANCE* result;
 
+    /* Codes_SRS_PROV_DEVICE_CLIENT_12_001: [ If any of the input parameter is NULL `Prov_Device_Create` shall return NULL.] */
     if (uri == NULL || scope_id == NULL || protocol == NULL)
     {
         LogError("Invalid parameter specified uri: %p, scope_id: %p, protocol: %p", uri, scope_id, protocol);
@@ -93,23 +94,29 @@ PROV_DEVICE_HANDLE Prov_Device_Create(const char* uri, const char* scope_id, PRO
     }
     else
     {
+        /* Codes_SRS_PROV_DEVICE_CLIENT_12_002: [ The function shall allocate memory for PROV_DEVICE_INSTANCE data structure. ] */
         result = (PROV_DEVICE_INSTANCE*)malloc(sizeof(PROV_DEVICE_INSTANCE));
         if (result == NULL)
         {
+            /* Codes_SRS_PROV_DEVICE_CLIENT_12_003: [ If the memory allocation failed the function shall return NULL. ] */
             LogError("Unable to allocate Instance Info");
         }
         else
         {
+            /* Codes_SRS_PROV_DEVICE_CLIENT_12_004: [ The function shall initialize the Lock. ] */
             result->LockHandle = Lock_Init();
             if (result->LockHandle == NULL)
             {
+                /* Codes_SRS_PROV_DEVICE_CLIENT_12_005: [ If the Lock initialization failed the function shall clean up the all resources and return NULL. ] */
                 LogError("Lock_Init failed");
                 free(result);
                 result = NULL;
             }
             else
             {
+                /* Codes_SRS_PROV_DEVICE_CLIENT_12_006: [ The function shall call the LL layer Prov_Device_LL_Create function and return with it's result. ] */
                 result->ProvDeviceLLHandle = Prov_Device_LL_Create(uri, scope_id, protocol);
+                /* Codes_SRS_PROV_DEVICE_CLIENT_12_007: [ The function shall initialize the result datastructure. ] */
                 result->ThreadHandle = NULL;
                 result->StopThread = 0;
             }
@@ -121,6 +128,7 @@ PROV_DEVICE_HANDLE Prov_Device_Create(const char* uri, const char* scope_id, PRO
 
 void Prov_Device_Destroy(PROV_DEVICE_HANDLE prov_device_handle)
 {
+    /* Codes_SRS_PROV_DEVICE_CLIENT_12_008: [ If the input parameter is NULL `Prov_Device_Destroy` shall return. ] */
     if (prov_device_handle == NULL)
     {
         LogError("NULL prov_device_handle");
@@ -131,31 +139,32 @@ void Prov_Device_Destroy(PROV_DEVICE_HANDLE prov_device_handle)
 
         if (Lock(prov_device_handle->LockHandle) != LOCK_OK)
         {
+            /* Codes_SRS_PROV_DEVICE_CLIENT_12_009: [ The function shall check the Lock status and if it is not OK set the thread signal to stop. ] */
             LogError("Could not acquire lock");
             prov_device_handle->StopThread = 1; /*setting it even when Lock fails*/
         }
         else
         {
+            /* Codes_SRS_PROV_DEVICE_CLIENT_12_010: [ The function shall check the Lock status and if it is OK set the thread signal to stop and unlock the Lock. ] */
             prov_device_handle->StopThread = 1;
 
-            /*Codes_SRS_IOTHUBMESSAGING_12_022: [ IoTHubMessaging_Close shall be made thread-safe by using the lock created in IoTHubMessaging_Create. ]*/
             (void)Unlock(prov_device_handle->LockHandle);
         }
 
-        if (prov_device_handle->ThreadHandle != NULL)
+        /* Codes_SRS_PROV_DEVICE_CLIENT_12_011: [ If there is a running worker thread the function shall call join to finish. ] */
+        int res;
+        if (ThreadAPI_Join(prov_device_handle->ThreadHandle, &res) != THREADAPI_OK)
         {
-            int res;
-            /*Codes_SRS_IOTHUBMESSAGING_12_013: [ The thread created as part of executing IoTHubMessaging_SendAsync shall be joined. ]*/
-            if (ThreadAPI_Join(prov_device_handle->ThreadHandle, &res) != THREADAPI_OK)
-            {
-                LogError("ThreadAPI_Join failed");
-            }
+            LogError("ThreadAPI_Join failed");
         }
 
+        /* Codes_SRS_PROV_DEVICE_CLIENT_12_012: [ The function shall call the LL layer Prov_Device_LL_Destroy with the given handle. ] */
         Prov_Device_LL_Destroy(prov_device_instance->ProvDeviceLLHandle);
 
+        /* Codes_SRS_PROV_DEVICE_CLIENT_12_013: [ The function shall free the Lock resource with de-init. ] */
         Lock_Deinit(prov_device_instance->LockHandle);
 
+        /* Codes_SRS_PROV_DEVICE_CLIENT_12_014: [ The function shall free the device handle resource. ] */
         free(prov_device_instance);
     }
 }
@@ -164,6 +173,7 @@ PROV_DEVICE_RESULT Prov_Device_Register_Device(PROV_DEVICE_HANDLE prov_device_ha
 {
     PROV_DEVICE_RESULT result;
 
+    /* Codes_SRS_PROV_DEVICE_CLIENT_12_015: [ If the input parameter is NULL `Prov_Device_Register_Device` shall return with invalid argument error. ] */
     if (prov_device_handle == NULL)
     {
         LogError("NULL prov_device_handle");
@@ -173,22 +183,28 @@ PROV_DEVICE_RESULT Prov_Device_Register_Device(PROV_DEVICE_HANDLE prov_device_ha
     { 
         PROV_DEVICE_INSTANCE* prov_device_instance = (PROV_DEVICE_INSTANCE*)prov_device_handle;
 
+        /* Codes_SRS_PROV_DEVICE_CLIENT_12_016: [ The function shall start a worker thread with the device instance. ] */
         if ((result = StartWorkerThreadIfNeeded(prov_device_instance)) != PROV_DEVICE_RESULT_OK)
         {
+            /* Codes_SRS_PROV_DEVICE_CLIENT_12_017: [ If the thread initialization failed the function shall return error. ] */
             LogError("Could not start worker thread");
             result = PROV_DEVICE_RESULT_ERROR;
         }
         else
         {
+            /* Codes_SRS_PROV_DEVICE_CLIENT_12_018: [ The function shall try to lock the Lock. ] */
             if (Lock(prov_device_instance->LockHandle) != LOCK_OK)
             {
+                /* Codes_SRS_PROV_DEVICE_CLIENT_12_019: [ If the locking failed the function shall return with error. ] */
                 LogError("Could not acquire lock");
                 result = PROV_DEVICE_RESULT_ERROR;
             }
             else
             {
+                /* Codes_SRS_PROV_DEVICE_CLIENT_12_020: [ The function shall call the LL layer Prov_Device_LL_Register_Device with the given parameters and return with the result. ] */
                 result = Prov_Device_LL_Register_Device(prov_device_instance->ProvDeviceLLHandle, register_callback, user_context, register_status_callback, status_user_context);
 
+                /* Codes_SRS_PROV_DEVICE_CLIENT_12_021: [ The function shall unlock the Lock. ] */
                 (void)Unlock(prov_device_instance->LockHandle);
             }
         }
@@ -201,23 +217,15 @@ PROV_DEVICE_RESULT Prov_Device_SetOption(PROV_DEVICE_HANDLE prov_device_handle, 
 {
     PROV_DEVICE_RESULT result;
 
-    if (prov_device_handle == NULL)
+    /* Codes_SRS_PROV_DEVICE_CLIENT_12_022: [ If any of the input parameter is NULL `Prov_Device_SetOption` shall return with invalid argument error. ] */
+    if (prov_device_handle == NULL || optionName == NULL || value == NULL)
     {
+        LogError("Invalid parameter specified prov_device_handle: %p, optionName: %p, value: %p", prov_device_handle, optionName, value);
         result = PROV_DEVICE_RESULT_INVALID_ARG;
-        LogError("NULL prov_device_handle");
-    }
-    else if (optionName == NULL)
-    {
-        result = PROV_DEVICE_RESULT_INVALID_ARG;
-        LogError("NULL optionName");
-    }
-    else if (value == NULL)
-    {
-        result = PROV_DEVICE_RESULT_INVALID_ARG;
-        LogError("NULL value");
     }
     else
     {
+        /* Codes_SRS_PROV_DEVICE_CLIENT_12_023: [ The function shall call the LL layer Prov_Device_LL_SetOption with the given parameters and return with the result. ] */
         PROV_DEVICE_INSTANCE* prov_device_instance = (PROV_DEVICE_INSTANCE*)prov_device_handle;
 
         result = Prov_Device_LL_SetOption(prov_device_instance->ProvDeviceLLHandle, optionName, value);
@@ -228,6 +236,7 @@ PROV_DEVICE_RESULT Prov_Device_SetOption(PROV_DEVICE_HANDLE prov_device_handle, 
 
 const char* Prov_Device_GetVersionString(void)
 {
+    /* Codes_SRS_PROV_DEVICE_CLIENT_12_024: [ The function shall call the LL layer Prov_Device_LL_GetVersionString and return with the result. ] */
     return Prov_Device_LL_GetVersionString();
 }
 
