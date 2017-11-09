@@ -14,10 +14,7 @@ static void* my_gballoc_malloc(size_t size)
 
 static void my_gballoc_free(void* ptr)
 {
-    if (ptr != NULL)
-    {
-        free(ptr);
-    }
+    free(ptr);
 }
 
 #include "testrunnerswitcher.h"
@@ -61,7 +58,6 @@ static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
     char temp_str[256];
     (void)error_code;
     (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", "");
-    //(void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
     ASSERT_FAIL(temp_str);
 }
 
@@ -123,9 +119,9 @@ PROV_DEVICE_HANDLE TEST_PROV_DEVICE_HANDLE = (PROV_DEVICE_HANDLE)0x3434;
 
 static PROV_DEVICE_LL_HANDLE TEST_PROV_DEVICE_LL_HANDLE = (PROV_DEVICE_LL_HANDLE)0x4343;
 
-static PROV_DEVICE_CLIENT_REGISTER_DEVICE_CALLBACK TEST_PROV_DEVICE_CLIENT_REGISTER_DEVICE_CALLBACK;
+static PROV_DEVICE_CLIENT_REGISTER_DEVICE_CALLBACK TEST_PROV_DEVICE_CLIENT_REGISTER_DEVICE_CALLBACK = (PROV_DEVICE_CLIENT_REGISTER_DEVICE_CALLBACK)0x1478;
 
-static PROV_DEVICE_CLIENT_REGISTER_STATUS_CALLBACK TEST_PROV_DEVICE_CLIENT_REGISTER_STATUS_CALLBACK;
+static PROV_DEVICE_CLIENT_REGISTER_STATUS_CALLBACK TEST_PROV_DEVICE_CLIENT_REGISTER_STATUS_CALLBACK = (PROV_DEVICE_CLIENT_REGISTER_STATUS_CALLBACK)0x1236;
 
 static const char* TEST_CONST_CHAR_PTR = "test_string";
 
@@ -480,7 +476,7 @@ TEST_FUNCTION(Prov_Device_Destroy_Thread_Join_fail)
     //cleanup
 }
 
-/* Tests_SRS_PROV_DEVICE_CLIENT_12_015: [ If the input parameter is NULL `Prov_Device_Register_Device` shall return with invalid argument error. ] */
+/* Tests_SRS_PROV_DEVICE_CLIENT_12_015: [ If the prov_device_handle or register_callback input parameter is NULL `Prov_Device_Register_Device` shall return with invalid argument error. ] */
 TEST_FUNCTION(Prov_Device_Register_Device_handle_NULL_fail)
 {
     //arrange
@@ -488,6 +484,22 @@ TEST_FUNCTION(Prov_Device_Register_Device_handle_NULL_fail)
 
     //act
     PROV_DEVICE_RESULT prov_device_result = Prov_Device_Register_Device(NULL, TEST_PROV_DEVICE_CLIENT_REGISTER_DEVICE_CALLBACK, TEST_USER_CONTEXT, TEST_PROV_DEVICE_CLIENT_REGISTER_STATUS_CALLBACK, TEST_USER_CONTEXT);
+
+    //assert
+    ASSERT_ARE_EQUAL(PROV_DEVICE_RESULT, PROV_DEVICE_RESULT_INVALID_ARG, prov_device_result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    //cleanup
+}
+
+/* Tests_SRS_PROV_DEVICE_CLIENT_12_015: [ If the prov_device_handle or register_callback input parameter is NULL `Prov_Device_Register_Device` shall return with invalid argument error. ] */
+TEST_FUNCTION(Prov_Device_Register_Device_callback_NULL_fail)
+{
+    //arrange
+    umock_c_reset_all_calls();
+
+    //act
+    PROV_DEVICE_RESULT prov_device_result = Prov_Device_Register_Device(TEST_PROV_DEVICE_HANDLE, NULL, TEST_USER_CONTEXT, TEST_PROV_DEVICE_CLIENT_REGISTER_STATUS_CALLBACK, TEST_USER_CONTEXT);
 
     //assert
     ASSERT_ARE_EQUAL(PROV_DEVICE_RESULT, PROV_DEVICE_RESULT_INVALID_ARG, prov_device_result);
@@ -543,14 +555,14 @@ TEST_FUNCTION(Prov_Device_Register_Device_fail)
     int negativeTestsInitResult = umock_c_negative_tests_init();
     ASSERT_ARE_EQUAL(int, 0, negativeTestsInitResult);
 
-    STRICT_EXPECTED_CALL(ThreadAPI_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(Lock(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(Prov_Device_LL_Register_Device(TEST_PROV_DEVICE_LL_HANDLE, TEST_PROV_DEVICE_CLIENT_REGISTER_DEVICE_CALLBACK, TEST_USER_CONTEXT, TEST_PROV_DEVICE_CLIENT_REGISTER_STATUS_CALLBACK, TEST_USER_CONTEXT));
     STRICT_EXPECTED_CALL(Unlock(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(ThreadAPI_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
     umock_c_negative_tests_snapshot();
 
-    size_t calls_cannot_fail[] = { 2 , 3 };
+    size_t calls_cannot_fail[] = { 2 };
 
     //act
     size_t count = umock_c_negative_tests_call_count();

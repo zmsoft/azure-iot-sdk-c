@@ -138,6 +138,7 @@ linkSharedUtil(prov_auth_client)
 target_link_libraries(prov_auth_client hsm_security_client)
 
 add_library(prov_device_client ${PROV_DEVICE_CLIENT_SOURCE_C_FILES} ${PROV_DEVICE_CLEINT_SOURCE_H_FILES})
+target_link_libraries(prov_device_client  prov_device_ll_client)
 
 add_library(prov_device_ll_client ${PROV_DEVICE_LL_CLIENT_SOURCE_C_FILES} ${PROV_DEVICE_LL_CLEINT_SOURCE_H_FILES})
 linkSharedUtil(prov_device_ll_client)

@@ -173,39 +173,40 @@ PROV_DEVICE_RESULT Prov_Device_Register_Device(PROV_DEVICE_HANDLE prov_device_ha
 {
     PROV_DEVICE_RESULT result;
 
-    /* Codes_SRS_PROV_DEVICE_CLIENT_12_015: [ If the input parameter is NULL `Prov_Device_Register_Device` shall return with invalid argument error. ] */
-    if (prov_device_handle == NULL)
+    /* Codes_SRS_PROV_DEVICE_CLIENT_12_015: [ If the prov_device_handle or register_callback input parameter is NULL `Prov_Device_Register_Device` shall return with invalid argument error. ] */
+    if (prov_device_handle == NULL || register_callback == NULL)
     {
-        LogError("NULL prov_device_handle");
+        LogError("Invalid parameter specified prov_device_handle: %p, register_callback: %p", prov_device_handle, register_callback);
         result = PROV_DEVICE_RESULT_INVALID_ARG;
     }
     else
     { 
         PROV_DEVICE_INSTANCE* prov_device_instance = (PROV_DEVICE_INSTANCE*)prov_device_handle;
 
-        /* Codes_SRS_PROV_DEVICE_CLIENT_12_016: [ The function shall start a worker thread with the device instance. ] */
-        if ((result = StartWorkerThreadIfNeeded(prov_device_instance)) != PROV_DEVICE_RESULT_OK)
+        /* Codes_SRS_PROV_DEVICE_CLIENT_12_018: [ The function shall try to lock the Lock. ] */
+        if (Lock(prov_device_instance->LockHandle) != LOCK_OK)
         {
-            /* Codes_SRS_PROV_DEVICE_CLIENT_12_017: [ If the thread initialization failed the function shall return error. ] */
-            LogError("Could not start worker thread");
+            /* Codes_SRS_PROV_DEVICE_CLIENT_12_019: [ If the locking failed the function shall return with error. ] */
+            LogError("Could not acquire lock");
             result = PROV_DEVICE_RESULT_ERROR;
         }
         else
         {
-            /* Codes_SRS_PROV_DEVICE_CLIENT_12_018: [ The function shall try to lock the Lock. ] */
-            if (Lock(prov_device_instance->LockHandle) != LOCK_OK)
-            {
-                /* Codes_SRS_PROV_DEVICE_CLIENT_12_019: [ If the locking failed the function shall return with error. ] */
-                LogError("Could not acquire lock");
-                result = PROV_DEVICE_RESULT_ERROR;
-            }
-            else
-            {
-                /* Codes_SRS_PROV_DEVICE_CLIENT_12_020: [ The function shall call the LL layer Prov_Device_LL_Register_Device with the given parameters and return with the result. ] */
-                result = Prov_Device_LL_Register_Device(prov_device_instance->ProvDeviceLLHandle, register_callback, user_context, register_status_callback, status_user_context);
+            /* Codes_SRS_PROV_DEVICE_CLIENT_12_020: [ The function shall call the LL layer Prov_Device_LL_Register_Device with the given parameters and return with the result. ] */
+            result = Prov_Device_LL_Register_Device(prov_device_instance->ProvDeviceLLHandle, register_callback, user_context, register_status_callback, status_user_context);
 
-                /* Codes_SRS_PROV_DEVICE_CLIENT_12_021: [ The function shall unlock the Lock. ] */
-                (void)Unlock(prov_device_instance->LockHandle);
+            /* Codes_SRS_PROV_DEVICE_CLIENT_12_021: [ The function shall unlock the Lock. ] */
+            (void)Unlock(prov_device_instance->LockHandle);
+
+            if (result == PROV_DEVICE_RESULT_OK)
+            {
+                /* Codes_SRS_PROV_DEVICE_CLIENT_12_016: [ The function shall start a worker thread with the device instance. ] */
+                if ((result = StartWorkerThreadIfNeeded(prov_device_instance)) != PROV_DEVICE_RESULT_OK)
+                {
+                    /* Codes_SRS_PROV_DEVICE_CLIENT_12_017: [ If the thread initialization failed the function shall return error. ] */
+                    LogError("Could not start worker thread");
+                    result = PROV_DEVICE_RESULT_ERROR;
+                }
             }
         }
     }

@@ -68,45 +68,9 @@ extern void Prov_Device_Destroy(PROV_DEVICE_HANDLE prov_device_handle)
 
 ```c
 extern PROV_DEVICE_RESULT Prov_Device_Register_Device(PROV_DEVICE_HANDLE prov_device_handle, PROV_DEVICE_CLIENT_REGISTER_DEVICE_CALLBACK register_callback, void* user_context, PROV_DEVICE_CLIENT_REGISTER_STATUS_CALLBACK register_status_callback, void* status_user_context)
-{
-    PROV_DEVICE_RESULT result;
-
-    if (prov_device_handle == NULL)
-    {
-        LogError("NULL prov_device_handle");
-        result = PROV_DEVICE_RESULT_INVALID_ARG;
-    }
-    else
-    { 
-        PROV_DEVICE_INSTANCE* prov_device_instance = (PROV_DEVICE_INSTANCE*)prov_device_handle;
-
-        if ((result = StartWorkerThreadIfNeeded(prov_device_instance)) != PROV_DEVICE_RESULT_OK)
-        {
-            LogError("Could not start worker thread");
-            result = PROV_DEVICE_RESULT_ERROR;
-        }
-        else
-        {
-            if (Lock(prov_device_instance->LockHandle) != LOCK_OK)
-            {
-                LogError("Could not acquire lock");
-                result = PROV_DEVICE_RESULT_ERROR;
-            }
-            else
-            {
-                result = Prov_Device_LL_Register_Device(prov_device_instance->ProvDeviceLLHandle, register_callback, user_context, register_status_callback, status_user_context);
-
-                (void)Unlock(prov_device_instance->LockHandle);
-            }
-        }
-    }
-
-    return result;
-}
-
 ```
 
-**SRS_PROV_DEVICE_CLIENT_12_015: [** If the input parameter is NULL `Prov_Device_Register_Device` shall return with invalid argument error.**]**
+**SRS_PROV_DEVICE_CLIENT_12_015: [** If the prov_device_handle or register_callback input parameter is NULL `Prov_Device_Register_Device` shall return with invalid argument error.**]**
 
 **SRS_PROV_DEVICE_CLIENT_12_016: [** The function shall start a worker thread with the device instance.**]**
 

@@ -25,7 +25,6 @@ typedef struct PROV_DEVICE_INSTANCE_TAG* PROV_DEVICE_HANDLE;
 #include "prov_device_ll_client.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/macro_utils.h"
-#include "azure_prov_client/iothub_auth_client.h"
 #include "azure_prov_client/prov_transport.h"
 
 #ifdef __cplusplus
