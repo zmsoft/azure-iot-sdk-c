@@ -31,8 +31,8 @@
 DEFINE_ENUM_STRINGS(PROV_DEVICE_RESULT, PROV_DEVICE_RESULT_VALUE);
 DEFINE_ENUM_STRINGS(PROV_DEVICE_REG_STATUS, PROV_DEVICE_REG_STATUS_VALUES);
 
-static const char* global_prov_uri = "global.azure-devices-provisioning.net";
-static const char* scope_id = "0ne00001028";
+static const char* global_prov_uri = "";
+static const char* scope_id = "";
 
 static bool g_trace_on = true;
 
