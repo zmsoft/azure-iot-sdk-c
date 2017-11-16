@@ -21,34 +21,29 @@
 #include "certs.h"
 #endif // SET_TRUSTED_CERT_IN_SAMPLES
 
-/*String containing Hostname, Device Id & Device Key, ModuleID, and GatewayHostName in the format:                          */
-/*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>;ModuleId=<Module_Id>;GatewayHostName=127.0.0.1" */
-static const char* connectionString = "[device connection string]";
-
 static int callbackCounter;
 static char msgText[1024];
 static char propText[1024];
 static bool g_continueRunning;
-#define MESSAGE_COUNT 5
-#define DOWORK_LOOP_NUM     3
-
+#define MESSAGE_COUNT 500
+#define DOWORK_LOOP_NUM 3
 
 typedef struct EVENT_INSTANCE_TAG
 {
     IOTHUB_MESSAGE_HANDLE messageHandle;
-    size_t messageTrackingId;  // For tracking the messages within the user callback.
+    size_t messageTrackingId; // For tracking the messages within the user callback.
 } EVENT_INSTANCE;
 
-static IOTHUBMESSAGE_DISPOSITION_RESULT ReceiveMessageCallback(IOTHUB_MESSAGE_HANDLE message, void* userContextCallback)
+static IOTHUBMESSAGE_DISPOSITION_RESULT ReceiveMessageCallback(IOTHUB_MESSAGE_HANDLE message, void *userContextCallback)
 {
-    int* counter = (int*)userContextCallback;
-    const char* buffer;
+    int *counter = (int *)userContextCallback;
+    const char *buffer;
     size_t size;
     MAP_HANDLE mapProperties;
-    const char* messageId;
-    const char* correlationId;
-    const char* userDefinedContentType;
-    const char* userDefinedContentEncoding;
+    const char *messageId;
+    const char *correlationId;
+    const char *userDefinedContentType;
+    const char *userDefinedContentEncoding;
 
     // Message properties
     if ((messageId = IoTHubMessage_GetMessageId(message)) == NULL)
@@ -72,14 +67,14 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT ReceiveMessageCallback(IOTHUB_MESSAGE_HA
     }
 
     // Message content
-    if (IoTHubMessage_GetByteArray(message, (const unsigned char**)&buffer, &size) != IOTHUB_MESSAGE_OK)
+    if (IoTHubMessage_GetByteArray(message, (const unsigned char **)&buffer, &size) != IOTHUB_MESSAGE_OK)
     {
         (void)printf("unable to retrieve the message data\r\n");
     }
     else
     {
-        (void)printf("Received Message [%d]\r\n Message ID: %s\r\n Correlation ID: %s\r\n Content-Type: %s\r\n Content-Encoding: %s\r\n Data: <<<%.*s>>> & Size=%d\r\n", 
-            *counter, messageId, correlationId, userDefinedContentType, userDefinedContentEncoding, (int)size, buffer, (int)size);
+        (void)printf("Received Message [%d]\r\n Message ID: %s\r\n Correlation ID: %s\r\n Content-Type: %s\r\n Content-Encoding: %s\r\n Data: <<<%.*s>>> & Size=%d\r\n",
+                     *counter, messageId, correlationId, userDefinedContentType, userDefinedContentEncoding, (int)size, buffer, (int)size);
         // If we receive the work 'quit' then we stop running
         if (size == (strlen("quit") * sizeof(char)) && memcmp(buffer, "quit", size) == 0)
         {
@@ -91,8 +86,8 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT ReceiveMessageCallback(IOTHUB_MESSAGE_HA
     mapProperties = IoTHubMessage_Properties(message);
     if (mapProperties != NULL)
     {
-        const char*const* keys;
-        const char*const* values;
+        const char *const *keys;
+        const char *const *values;
         size_t propertyCount = 0;
         if (Map_GetInternals(mapProperties, &keys, &values, &propertyCount) == MAP_OK)
         {
@@ -115,9 +110,9 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT ReceiveMessageCallback(IOTHUB_MESSAGE_HA
     return IOTHUBMESSAGE_ACCEPTED;
 }
 
-static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void* userContextCallback)
+static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void *userContextCallback)
 {
-    EVENT_INSTANCE* eventInstance = (EVENT_INSTANCE*)userContextCallback;
+    EVENT_INSTANCE *eventInstance = (EVENT_INSTANCE *)userContextCallback;
     (void)printf("Confirmation[%d] received for message tracking id = %zu with result = %s\r\n", callbackCounter, eventInstance->messageTrackingId, ENUM_TO_STRING(IOTHUB_CLIENT_CONFIRMATION_RESULT, result));
     /* Some device specific action code goes here... */
     callbackCounter++;
@@ -126,6 +121,10 @@ static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, v
 
 void iothub_client_sample_module_sender(void)
 {
+    /*String containing Hostname, Device Id & Device Key, ModuleID, and GatewayHostName in the format:                          */
+    /*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>;ModuleId=<Module_Id>;GatewayHostName=127.0.0.1" */
+    char *connectionString = getenv("EdgeHubConnectionString");
+
     IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
 
     EVENT_INSTANCE messages[MESSAGE_COUNT];
@@ -135,7 +134,7 @@ void iothub_client_sample_module_sender(void)
     double avgWindSpeed = 10.0;
     double minTemperature = 20.0;
     double minHumidity = 60.0;
-    
+
     callbackCounter = 0;
     int receiveContext = 0;
 
@@ -180,9 +179,9 @@ void iothub_client_sample_module_sender(void)
                     if (iterator < MESSAGE_COUNT)
                     {
                         temperature = minTemperature + (rand() % 10);
-                        humidity = minHumidity +  (rand() % 20);
+                        humidity = minHumidity + (rand() % 20);
                         sprintf_s(msgText, sizeof(msgText), "{\"deviceId\":\"myFirstDevice\",\"windSpeed\":%.2f,\"temperature\":%.2f,\"humidity\":%.2f}", avgWindSpeed + (rand() % 4 + 2), temperature, humidity);
-                        if ((messages[iterator].messageHandle = IoTHubMessage_CreateFromByteArray((const unsigned char*)msgText, strlen(msgText))) == NULL)
+                        if ((messages[iterator].messageHandle = IoTHubMessage_CreateFromByteArray((const unsigned char *)msgText, strlen(msgText))) == NULL)
                         {
                             (void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
                         }
@@ -209,10 +208,9 @@ void iothub_client_sample_module_sender(void)
                                 (void)printf("IoTHubClient_LL_SendEventAsync accepted message [%d] for transmission to IoT Hub.\r\n", (int)iterator);
                             }
                         }
-
                     }
                     IoTHubClient_LL_DoWork(iotHubClientHandle);
-                    ThreadAPI_Sleep(1);
+                    ThreadAPI_Sleep(1000);
 
                     iterator++;
                 } while (g_continueRunning);
